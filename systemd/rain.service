@@ -1,0 +1,13 @@
+[Unit]
+Description=Rain Monitor Service
+After=multi-user.target
+
+[Service]
+Type=simple
+User=meter
+WorkingDirectory=/home/meter/rain
+ExecStart=/usr/bin/env python3 /home/meter/rain/rain.py
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target

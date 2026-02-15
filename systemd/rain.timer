@@ -1,0 +1,9 @@
+[Unit]
+Description=Starts rain with a 1 minute delay
+
+[Timer]
+OnBootSec=1min
+Unit=rain.service
+
+[Install]
+WantedBy=timers.target

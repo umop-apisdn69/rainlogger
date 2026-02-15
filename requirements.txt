@@ -1,0 +1,14 @@
+# for rain.py
+RPi.GPIO
+Adafruit_DHT
+sqlite3
+threading
+logging
+time
+datetime
+os
+glob
+
+# for ws.py
+sys
+prettytable     

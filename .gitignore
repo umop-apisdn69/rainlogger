@@ -1,0 +1,34 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+.venv/
+venv/
+ENV/
+env/
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ---- Logs / runtime artifacts ----
+*.log
+
+# ---- SQLite database files (do NOT commit) ----
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.sqlite-journal
+*-wal
+*-shm
+
+# ---- Secrets / local config ----
+*.env
+config/*.ini
+!config/*.example.ini
