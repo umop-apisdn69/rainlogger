@@ -75,9 +75,13 @@ def read_temp_raw():
 
 def read_ds18b20_temp():
     lines = read_temp_raw()
+    retries = 0
     while lines[0].strip()[-3:] != 'YES':
+        if retries >= 10:
+            raise RuntimeError("DS18B20 sensor failed to respond after 10 retries")
         time.sleep(0.2)
         lines = read_temp_raw()
+        retries += 1
     equals_pos = lines[1].find('t=')
     if equals_pos != -1:
         temp_string = lines[1][equals_pos+2:]
@@ -169,7 +173,11 @@ logging.info("Rain sensor monitoring started in background. Press Ctrl-C to exit
 try:
     while True:
         wait_for_next_multiple_of_minutes(Increment)
-        ds18b20_temp = read_ds18b20_temp()
+        try:
+            ds18b20_temp = read_ds18b20_temp()
+        except RuntimeError as e:
+            logging.error(e)
+            ds18b20_temp = None
         dht22_temp, dht22_humidity = read_dht22()
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
