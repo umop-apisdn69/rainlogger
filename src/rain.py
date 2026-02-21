@@ -101,6 +101,7 @@ BucketSize = 0.0136     # Calibrated 32 oz over 20 min slow pour -> 254 tips
 db_path = os.path.expanduser("~/rain/weather/weather.db")
 conn = sqlite3.connect(db_path, check_same_thread=False)
 c = conn.cursor()
+db_lock = threading.Lock()
 
 # Create WeatherEvents table if not exists
 c.execute('''
@@ -132,8 +133,9 @@ def rain_interrupt(channel):
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     Tips += 1
     logging.info(f"Rain Tip {Tips} detected")
-    c.execute('INSERT INTO WeatherEvents (c_mod, c_bucket) VALUES (?, ?)', (current_time, BucketSize))
-    conn.commit()
+    with db_lock:
+        c.execute('INSERT INTO WeatherEvents (c_mod, c_bucket) VALUES (?, ?)', (current_time, BucketSize))
+        conn.commit()
 
 # Set up rain sensor interrupt
 def monitor_rain():
@@ -172,11 +174,13 @@ try:
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         if ds18b20_temp is not None and dht22_temp is not None and dht22_humidity is not None:
-            c.execute('INSERT INTO WeatherEvents (c_mod, c_thi_temp, c_thi_hum, c_temp) VALUES (?, ?, ?, ?)',
-                      (current_time, dht22_temp, dht22_humidity, ds18b20_temp))
-            conn.commit()
+            with db_lock:
+                c.execute('INSERT INTO WeatherEvents (c_mod, c_thi_temp, c_thi_hum, c_temp) VALUES (?, ?, ?, ?)',
+                          (current_time, dht22_temp, dht22_humidity, ds18b20_temp))
+                conn.commit()
 
 except KeyboardInterrupt:
     logging.info("Exiting gracefully...")
+finally:
     GPIO.cleanup()
     conn.close()
