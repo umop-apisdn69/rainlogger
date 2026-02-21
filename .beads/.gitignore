@@ -2,6 +2,9 @@
 dolt/
 dolt-access.lock
 
+# Hook backups (created by bd hooks install)
+hooks/*.backup
+
 # Runtime files
 bd.sock
 bd.sock.startlock
