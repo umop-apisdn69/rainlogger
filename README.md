@@ -1,8 +1,8 @@
 # Rain Logger (Raspberry Pi Zero W)
 
-For primary components:
+Four primary components:
 - Periodic temp/humidity logger (CLI/systemd timer) writing to a local SQLite DB
--- Includes a GPIO interrupt-driven callback function to log rain gauge events to the DB
+    - Includes a GPIO interrupt-driven callback function to log rain gauge events to the DB
 - A python script to output daily statistics for a variable number of days
 - A sql script to query and output all data from the current day ("today")
 - A sql script to query and output all data from the prior day ("yesterday")
