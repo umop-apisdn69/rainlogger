@@ -7,7 +7,7 @@ Type=simple
 User=meter
 WorkingDirectory=/home/meter/rain
 ExecStart=/usr/bin/env python3 /home/meter/rain/rain.py
-Restart=on-abort
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
