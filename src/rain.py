@@ -32,6 +32,7 @@ import os
 import glob
 import threading
 import logging
+from logging.handlers import RotatingFileHandler
 
 #######################################################################
 # Pin roles by physical PIN, custom cable wire, and GPIO (BCM) number #
@@ -128,7 +129,7 @@ GPIO.setup(BucketPin, GPIO.IN)
 log_file = os.path.expanduser("~/rain/weather/rain6.log")
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s %(levelname)s: %(message)s',
-                    handlers=[logging.FileHandler(log_file),
+                    handlers=[RotatingFileHandler(log_file, maxBytes=5*1024*1024, backupCount=3),
                               logging.StreamHandler()])
 
 def rain_interrupt(channel):
@@ -186,6 +187,8 @@ try:
                 c.execute('INSERT INTO WeatherEvents (c_mod, c_thi_temp, c_thi_hum, c_temp) VALUES (?, ?, ?, ?)',
                           (current_time, dht22_temp, dht22_humidity, ds18b20_temp))
                 conn.commit()
+        else:
+            logging.warning(f"Sensor read failed — ds18b20={ds18b20_temp}, dht22_temp={dht22_temp}, dht22_humidity={dht22_humidity}; skipping DB insert")
 
 except KeyboardInterrupt:
     logging.info("Exiting gracefully...")
