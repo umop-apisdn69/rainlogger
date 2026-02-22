@@ -32,6 +32,7 @@ import os
 import glob
 import threading
 import logging
+import subprocess
 from logging.handlers import RotatingFileHandler
 
 #######################################################################
@@ -47,19 +48,21 @@ from logging.handlers import RotatingFileHandler
 #######################################################################
 # DHT22 needs 2 sec for stable reading
 # GPIO pin numbers
-DS18B20Pin = 10 # BOARD.10 = GPIO.15 - Redefined 1-Wire pin 
-DHT22Pin   = 17 # BOARD.11 = GPIO.17 - Adafruit_DHT library requires the GPIO numbering 17
-BucketPin  = 12 # BOARD.12 = GPIO.18
+# DS18B20 1-Wire pin: GPIO 15 (BCM) = BOARD pin 10
+# Pin is configured in /boot/config.txt via: dtoverlay=w1-gpio,gpiopin=15
+DHT22Pin   = 17 # BCM numbering — required by Adafruit_DHT (BCM 17 = BOARD pin 11)
+BucketPin  = 12 # BOARD numbering — used with RPi.GPIO (BOARD 12 = BCM 18)
 
 Tips = 0
+tips_lock = threading.Lock()
 Increment  = 10 # Number of minutes between timed data points; best 1, 5, 10, 30, 60
 
 # Initialize the DHT22 sensor
 DHT_SENSOR = Adafruit_DHT.DHT22
 
 # DS18B20 setup
-os.system('modprobe w1-gpio')
-os.system('modprobe w1-therm')
+subprocess.run(['modprobe', 'w1-gpio'], check=True)
+subprocess.run(['modprobe', 'w1-therm'], check=True)
 
 base_dir = '/sys/bus/w1/devices/'
 device_folders = glob.glob(base_dir + '28*')
@@ -89,6 +92,8 @@ def read_ds18b20_temp():
         temp_c = float(temp_string) / 1000.0
         temp_f = round(temp_c * 9.0 / 5.0 + 32.0, 2)
         return temp_f
+    logging.warning("DS18B20: t= marker missing in sensor output; returning None")
+    return None
 
 def read_dht22():
     humidity, temperature_c = Adafruit_DHT.read_retry(DHT_SENSOR, DHT22Pin)
@@ -136,8 +141,10 @@ def rain_interrupt(channel):
     global Tips
     # Record rain event
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    Tips += 1
-    logging.info(f"Rain Tip {Tips} detected")
+    with tips_lock:
+        Tips += 1
+        tip_count = Tips
+    logging.info(f"Rain Tip {tip_count} detected")
     with db_lock:
         c.execute('INSERT INTO WeatherEvents (c_mod, c_bucket) VALUES (?, ?)', (current_time, BucketSize))
         conn.commit()

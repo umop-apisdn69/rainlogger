@@ -36,13 +36,13 @@ def weather_summary(start_date, end_date):
     start_time = f"{start_date} 00:00:00"
     end_time = f"{end_date} 00:00:00"
 
-    query = f"""
+    query = """
     -- Define the summary interval, start time, and stop time
     WITH params AS (
         SELECT
             1440 AS interval_minutes, -- Set the desired interval length
-            '{start_time}' AS start_time, -- Set the start time
-            '{end_time}' AS stop_time -- Set the stop time
+            ? AS start_time, -- Set the start time
+            ? AS stop_time -- Set the stop time
     ),
     FilteredData AS (
         SELECT
@@ -137,7 +137,7 @@ def weather_summary(start_date, end_date):
     cursor = conn.cursor()
 
     # Execute the query
-    cursor.execute(query)
+    cursor.execute(query, (start_time, end_time))
     results = cursor.fetchall()
 
     # Custom headers (with colors) - reordered
